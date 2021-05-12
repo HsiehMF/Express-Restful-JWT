@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const Group = require('../models/group')
-const Vocabulary = require('../models/vocabulary')
 
 exports.getAllGroup = (req, res) => {
     Group.find()
@@ -8,12 +7,12 @@ exports.getAllGroup = (req, res) => {
         .then(result => {
             res.status(200).json({
                 count: result.length,
-                group: result.map(doc => {
+                output: result.map(doc => {
                     return {
                         _id: doc._id,
-                        vocabulary: doc.vocabulary,
-                        vocDefinition: doc.vocDefinition,
-                        request: {
+                        groupName: doc.groupName,
+                        description: doc.description,
+                        request_example: {
                             type: 'GET',
                             url: 'http://localhost:3000/group/' + doc._id
                         }
@@ -29,30 +28,29 @@ exports.getAllGroup = (req, res) => {
 }
 
 exports.createGroup = (req, res) => {
-    Vocabulary.findById(req.body.vocabularyId)
-        .then(vocabulary => {
-            if (!vocabulary) {
+    Group.findById(req.body.groupName)
+        .then(isGroupExist => {
+            if (isGroupExist) {
                 return res.status(404).json({
-                    message: "vocabulary not found, please input  prodoct of id rightly"
+                    message: "群組已存在，請重新輸入"
                 })
             }
             const group = new Group({
                 _id: mongoose.Types.ObjectId(),
                 groupName: req.body.groupName,
                 description: req.body.description,
-                vocabularyId: req.body.vocabularyId
             })
             return group.save()
         })
         .then(result => {
             res.status(201).json({
-                message: 'Group build',
-                createdOrder: {
+                message: '群組建立成功',
+                input: {
                     _id: result._id,
                     groupName: result.groupName,
                     description: result.description
                 },
-                request: {
+                request_example: {
                     type: 'GET',
                     url: 'http://localhost:3000/group/' + result._id
                 }
@@ -60,7 +58,7 @@ exports.createGroup = (req, res) => {
         })
         .catch(err => {
             res.status(500).json({
-                message: 'We dont have this vocabulary',
+                message: '非預期錯誤',
                 error: err
             })
         })
@@ -72,14 +70,14 @@ exports.getGroupById = (req, res) => {
         .then(group => {
             if (!group) {
                 return res.status(404).json({
-                    message: 'Group not found'
+                    message: '不存在該群組'
                 })
             }
             res.status(200).json({
-                group: group,
-                request: {
-                    type: 'GET',
-                    url: 'http://localhost:3000/group'
+                output: {
+                    _id: group._id,
+                    groupName: group.groupName,
+                    description: group.description
                 }
             })
         })
@@ -95,11 +93,7 @@ exports.deleteGroupById = (req, res) => {
         .exec()
         .then(result => {
             res.status(200).json({
-                group: result,
-                request: {
-                    type: 'GET',
-                    url: 'http://localhost:3000/group'
-                }
+                delete: result
             })
         })
         .catch(err => {

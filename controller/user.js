@@ -64,7 +64,7 @@ exports.userLogin = (req, res) => {
                     const token = jwt.sign({
                         userId: user[0]._id,
                         email: user[0].email
-                    }, 
+                    },
                     process.env.JWT_KEY,
                     {
                         expiresIn: "1h"
@@ -90,7 +90,7 @@ exports.userDelete = (req, res) => {
         .then(result => {
             res.status(200).json({
                 message: '使用者註銷'
-            }) 
+            })
         })
         .catch(err => {
             res.status(500).json({

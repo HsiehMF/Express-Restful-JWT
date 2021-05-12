@@ -6,7 +6,16 @@ exports.getAllVocabulary = (req, res) => {
     Vocabulary.find()
         .exec()
         .then(result => {
-            res.status(200).json(result)
+            res.status(200).json({
+                output: result.map(doc => {
+                    return {
+                        _id: doc._id,
+                        groupId: doc.groupId,
+                        vocabulary: doc.vocabulary,
+                        vocDefinition: doc.vocDefinition
+                    }
+                })
+            })
         })
         .catch(err => {
             res.status(500).json({
@@ -25,8 +34,13 @@ exports.createVocabulary = (req, res) => {
     vocabulary.save()
         .then(result => {
             res.status(200).json({
-                message: '[POST] 新增單字 to /vocabulary',
-                createdVocabulary: vocabulary
+                message: '新增單字成功',
+                input: {
+                    _id: result._id,
+                    groupId: result.groupId,
+                    vocabulary: result.vocabulary,
+                    vocDefinition: result.vocDefinition
+                }
             })
         }).catch(err => {
             res.status(500).json({
@@ -41,10 +55,17 @@ exports.getVocabularyById = (req, res) => {
         .exec()
         .then(result => {
             if (result) {
-                res.status(200).json(result)
+                res.status(200).json({
+                    result: {
+                        _id: result._id,
+                        groupId: result.groupId,
+                        vocabulary: result.vocabulary,
+                        vocDefinition: result.vocDefinition
+                    }
+                })
             } else {
                 res.status(404).json({
-                    message: '查詢不到此筆單字'
+                    message: '查詢不到該筆單字'
                 })
             }
         }).catch(err => {
@@ -56,13 +77,20 @@ exports.updateVocabularyById = (req, res) => {
         const id = req.params.vocabularyId
         const updateOps = {}
         for (const ops of req.body) {
-            updateOps[ops.propName] = ops.value    // Client 需要傳入陣列包著 JSON 格式，propName 為 Schema 定義的屬性名稱
+            updateOps[ops.propName] = ops.value                          // propName 為使用者欲修改的 key
         }
-        Vocabulary.updateOne({ _id: id }, { $set: updateOps })  // 第一個參數為 _id，第二個參數須更改的資料內容 (定義的屬性, value)
+        Vocabulary.updateOne({ _id: id }, { $set: updateOps })  // 第一個參數為 _id，第二個參數為傳入的更改內容
             .exec()
             .then(result => {
-                console.log(result)
-                res.status(200).json(result)
+                res.status(200).json({
+                    message: "更新成功",
+                    result: {
+                        _id: result._id,
+                        groupId: result.groupId,
+                        vocabulary: result.vocabulary,
+                        vocDefinition: result.vocDefinition
+                    }
+                })
             }).catch(err => {
                 res.status(500).json({
                     error: err
